@@ -112,7 +112,7 @@ Whether for users or professional developers, LobeHub will be your AI Agent play
   </picture>
 </details>
 
-## ✨ Features
+## ✨ Features 
 
 [![][image-feat-cot]][docs-feat-cot]
 
