@@ -1,5 +1,6 @@
 name: Upstream Sync
-
+env:
+  GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
 permissions:
   contents: write
   issues: write
