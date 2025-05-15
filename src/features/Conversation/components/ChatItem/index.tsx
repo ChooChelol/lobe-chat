@@ -1,12 +1,13 @@
 'use client';
 
-import { ChatItem } from '@lobehub/ui';
+import { ChatItem } from '@lobehub/ui/chat';
 import { createStyles } from 'antd-style';
 import isEqual from 'fast-deep-equal';
-import { MouseEventHandler, ReactNode, memo, useCallback, useMemo } from 'react';
+import { MouseEventHandler, ReactNode, memo, use, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 
+import { VirtuosoContext } from '@/features/Conversation/components/VirtualizedList/VirtuosoContext';
 import { useAgentStore } from '@/store/agent';
 import { agentChatConfigSelectors } from '@/store/agent/selectors';
 import { useChatStore } from '@/store/chat';
@@ -64,6 +65,7 @@ const Item = memo<ChatListItemProps>(
     endRender,
     disableEditing,
     inPortalThread = false,
+    index,
   }) => {
     const { t } = useTranslation('common');
     const { styles, cx } = useStyles();
@@ -169,6 +171,7 @@ const Item = memo<ChatListItemProps>(
 
     const markdownProps = useMemo(
       () => ({
+        animated: generating,
         citations: item?.role === 'user' ? undefined : item?.search?.citations,
         components,
         customRender: markdownCustomRender,
@@ -184,10 +187,11 @@ const Item = memo<ChatListItemProps>(
               // if the citations's url and title are all the same, we should not show the citations
               item?.search?.citations.every((item) => item.title !== item.url),
       }),
-      [components, markdownCustomRender, item?.role, item?.search],
+      [generating, components, markdownCustomRender, item?.role, item?.search],
     );
 
     const onChange = useCallback((value: string) => updateMessageContent(id, value), [id]);
+    const virtuosoRef = use(VirtuosoContext);
 
     const onDoubleClick = useCallback<MouseEventHandler<HTMLDivElement>>(
       (e) => {
@@ -195,6 +199,8 @@ const Item = memo<ChatListItemProps>(
         if (item.id === 'default' || item.error) return;
         if (item.role && ['assistant', 'user'].includes(item.role) && e.altKey) {
           toggleMessageEditing(id, true);
+
+          virtuosoRef?.current?.scrollIntoView({ align: 'start', behavior: 'auto', index });
         }
       },
       [item, disableEditing],
@@ -243,7 +249,7 @@ const Item = memo<ChatListItemProps>(
               renderMessage={renderMessage}
               text={text}
               time={item.updatedAt || item.createdAt}
-              type={type === 'chat' ? 'block' : 'pure'}
+              variant={type === 'chat' ? 'bubble' : 'docs'}
             />
             {endRender}
           </Flexbox>
